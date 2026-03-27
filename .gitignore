@@ -1,0 +1,57 @@
+# Runtime state — generated on first session, never committed
+workspace/.claude/memory/
+workspace/.claude/knowledge/graph/
+workspace/.claude/logs/
+workspace/.claude/sessions/
+workspace/.claude/debug/
+workspace/.claude/telemetry/
+workspace/.claude/backups/
+workspace/.claude/shell-snapshots/
+workspace/.claude/plans/
+workspace/.claude/todos/
+workspace/.claude/file-history/
+
+# Framework generated artifacts and any nested runtime memory
+framework/scripts/__pycache__/
+framework/scripts/*.pyc
+framework/__pycache__/
+framework/docs/.claude/
+**/.claude/memory/
+**/.claude/knowledge/graph/
+**/.claude/logs/
+**/.claude/sessions/
+**/.claude/debug/
+
+# Credentials and personal overrides (NEVER commit these)
+global/.credentials.json
+global/settings.local.json
+workspace/.claude/settings.local.json
+**/.credentials.json
+**/*.env
+**/.env
+
+# Claude Code runtime cache
+global/projects/
+global/sessions/
+global/debug/
+global/history.jsonl
+global/stats-cache.json
+global/mcp-needs-auth-cache.json
+global/backups/
+global/shell-snapshots/
+global/telemetry/
+global/todos/
+global/file-history/
+
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db

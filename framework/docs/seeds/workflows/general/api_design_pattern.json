@@ -1,0 +1,9 @@
+{
+  "id": "api_design_pattern",
+  "goal": "Ensure all API endpoints follow the established framework pattern for consistency",
+  "grounding": "app/routes/user_routes.py",
+  "rule": "Use FastAPI REST for all API endpoints and routing",
+  "connected_seed_rules": {
+    "general": ["authentication_pattern", "coding_style_convention"]
+  }
+}

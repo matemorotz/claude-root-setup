@@ -1,0 +1,27 @@
+{
+  "skill": "langgraph-planner",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — graph description (e.g. 'plan a customer support multi-agent system', 'design email routing agent')"
+    },
+    "optional": {
+      "graph_name": "string — name for the graph",
+      "nodes": ["string — node names to include"],
+      "edges": ["string — edge definitions e.g. 'node_a -> node_b'"],
+      "pattern": "governor-specialist|standalone|custom — architecture pattern"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — graph specification and architecture decisions",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

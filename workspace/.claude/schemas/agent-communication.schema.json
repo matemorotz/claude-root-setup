@@ -1,0 +1,236 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code.dev/schemas/agent-communication.schema.json",
+  "title": "Agent Communication Protocol",
+  "description": "Standard message format for inter-agent communication",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["version", "message_id", "from_agent", "to_agent", "message_type", "timestamp", "payload"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "message_id": {
+      "type": "string",
+      "description": "Unique message identifier (UUID recommended)"
+    },
+    "from_agent": {
+      "type": "string",
+      "enum": ["haiku-executor", "sonnet-debugger", "sonnet-tracker", "opus-planner", "seed-analyzer", "opus-context-compiler", "research-agent", "user", "system"]
+    },
+    "to_agent": {
+      "type": "string",
+      "enum": ["haiku-executor", "sonnet-debugger", "sonnet-tracker", "opus-planner", "seed-analyzer", "opus-context-compiler", "research-agent", "user", "system"]
+    },
+    "message_type": {
+      "type": "string",
+      "enum": ["task_assignment", "task_result", "error_escalation", "progress_update", "context_request", "context_response", "plan_update", "validation_request", "validation_response"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "ID to correlate related messages (e.g., request/response pairs)"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["low", "normal", "high", "critical"],
+      "default": "normal"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Message payload (structure varies by message_type)",
+      "oneOf": [
+        {"$ref": "#/definitions/task_assignment"},
+        {"$ref": "#/definitions/task_result"},
+        {"$ref": "#/definitions/error_escalation"},
+        {"$ref": "#/definitions/progress_update"},
+        {"$ref": "#/definitions/context_request"},
+        {"$ref": "#/definitions/context_response"},
+        {"$ref": "#/definitions/plan_update"},
+        {"$ref": "#/definitions/validation_request"},
+        {"$ref": "#/definitions/validation_response"}
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata",
+      "properties": {
+        "session_id": {"type": "string"},
+        "project_name": {"type": "string"},
+        "plan_id": {"type": "string"},
+        "section_id": {"type": "string"},
+        "step_id": {"type": "string"}
+      }
+    }
+  },
+  "definitions": {
+    "task_assignment": {
+      "type": "object",
+      "required": ["step", "context"],
+      "properties": {
+        "step": {
+          "type": "object",
+          "description": "Step object from execution plan"
+        },
+        "context": {
+          "type": "object",
+          "description": "Minimal context for execution"
+        },
+        "expected_outcome": {"type": "string"},
+        "timeout": {"type": "integer"},
+        "permissions": {"type": "string", "enum": ["readonly", "restricted", "all"]}
+      }
+    },
+    "task_result": {
+      "type": "object",
+      "required": ["step_id", "status"],
+      "properties": {
+        "step_id": {"type": "string"},
+        "status": {"type": "string", "enum": ["success", "error", "timeout", "skipped"]},
+        "output": {"type": "string"},
+        "error_message": {"type": "string"},
+        "execution_time": {"type": "number"},
+        "artifacts": {
+          "type": "array",
+          "description": "Files or outputs produced",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {"type": "string"},
+              "type": {"type": "string"},
+              "description": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "error_escalation": {
+      "type": "object",
+      "required": ["step_id", "error_type", "error_message"],
+      "properties": {
+        "step_id": {"type": "string"},
+        "error_type": {"type": "string"},
+        "error_message": {"type": "string"},
+        "stack_trace": {"type": "string"},
+        "context": {
+          "type": "object",
+          "description": "Context when error occurred"
+        },
+        "attempted_solutions": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "suggested_escalation": {"type": "string", "enum": ["sonnet-debugger", "opus-planner", "user"]}
+      }
+    },
+    "progress_update": {
+      "type": "object",
+      "required": ["update_type"],
+      "properties": {
+        "update_type": {"type": "string", "enum": ["step_completed", "section_completed", "milestone_reached", "blocker_encountered"]},
+        "completed_steps": {"type": "array", "items": {"type": "string"}},
+        "current_step": {"type": "string"},
+        "progress_percentage": {"type": "number", "minimum": 0, "maximum": 100},
+        "estimated_remaining": {"type": "integer", "description": "Estimated remaining steps"},
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": {"type": "string"},
+              "severity": {"type": "string", "enum": ["low", "medium", "high", "critical"]}
+            }
+          }
+        }
+      }
+    },
+    "context_request": {
+      "type": "object",
+      "required": ["requested_context"],
+      "properties": {
+        "requested_context": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "File path or context identifier"
+          }
+        },
+        "purpose": {"type": "string"},
+        "minimal": {"type": "boolean", "default": true, "description": "Request minimal context only"}
+      }
+    },
+    "context_response": {
+      "type": "object",
+      "required": ["context_data"],
+      "properties": {
+        "context_data": {
+          "type": "object",
+          "description": "Requested context data"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "total_size": {"type": "integer", "description": "Size in characters"},
+            "files_included": {"type": "array", "items": {"type": "string"}},
+            "compressed": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "plan_update": {
+      "type": "object",
+      "required": ["update_type"],
+      "properties": {
+        "update_type": {"type": "string", "enum": ["status_change", "new_section", "step_modification", "seed_rule_application"]},
+        "section_id": {"type": "string"},
+        "step_id": {"type": "string"},
+        "changes": {
+          "type": "object",
+          "description": "Changes to apply to plan"
+        },
+        "reason": {"type": "string"}
+      }
+    },
+    "validation_request": {
+      "type": "object",
+      "required": ["validation_type", "subject"],
+      "properties": {
+        "validation_type": {"type": "string", "enum": ["outcome", "quality", "security", "performance"]},
+        "subject": {
+          "type": "object",
+          "description": "What to validate"
+        },
+        "criteria": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "validation_response": {
+      "type": "object",
+      "required": ["valid", "validation_type"],
+      "properties": {
+        "valid": {"type": "boolean"},
+        "validation_type": {"type": "string"},
+        "score": {"type": "number", "minimum": 0, "maximum": 100},
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "severity": {"type": "string", "enum": ["info", "warning", "error", "critical"]},
+              "description": {"type": "string"},
+              "suggestion": {"type": "string"}
+            }
+          }
+        },
+        "passed_criteria": {"type": "array", "items": {"type": "string"}},
+        "failed_criteria": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

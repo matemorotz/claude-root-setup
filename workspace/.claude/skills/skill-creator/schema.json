@@ -1,0 +1,27 @@
+{
+  "skill": "skill-creator",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — description of the skill to create (e.g. 'create a skill for deploying Docker containers')"
+    },
+    "optional": {
+      "skill_name": "string — kebab-case name for the skill",
+      "category": "document|development|integration|meta — skill category",
+      "tools_needed": ["string — tools the skill will use"],
+      "output_dir": "path — where to create skill (default: .claude/skills/)"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — skill creation summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

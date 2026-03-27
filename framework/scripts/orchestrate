@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+# Orchestrate - CLI command for fractal orchestration system
+#
+# Usage:
+#   orchestrate execute <plan.json>           - Execute a plan
+#   orchestrate status                         - Show execution status
+#   orchestrate blockers                       - Detect blocked tasks
+#   orchestrate history <plan_id>              - Show re-planning history
+#   orchestrate stats                          - Show memory statistics
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Commands
+
+cmd_execute() {
+    local plan_file="$1"
+    local strategy="${2:-balanced}"
+
+    if [ -z "$plan_file" ]; then
+        echo -e "${RED}Error: Plan file required${NC}"
+        echo "Usage: orchestrate execute <plan.json> [strategy]"
+        exit 1
+    fi
+
+    if [ ! -f "$plan_file" ]; then
+        echo -e "${RED}Error: Plan file not found: $plan_file${NC}"
+        exit 1
+    fi
+
+    echo -e "${BLUE}🚀 Executing plan: $plan_file${NC}"
+    echo -e "${BLUE}📊 Strategy: $strategy${NC}"
+    echo ""
+
+    cd "$PROJECT_ROOT"
+    python3 "$SCRIPT_DIR/execute-plan.py" "$plan_file" --strategy "$strategy"
+}
+
+cmd_status() {
+    echo -e "${BLUE}📊 Orchestration Status${NC}"
+    echo ""
+
+    cd "$PROJECT_ROOT"
+
+    # Count active tasks
+    ACTIVE_COUNT=$(find .claude/state/agents -name "*.start" 2>/dev/null | wc -l)
+    COMPLETE_COUNT=$(find .claude/state/agents -name "*.complete" 2>/dev/null | wc -l)
+
+    echo -e "Active tasks:    ${YELLOW}$ACTIVE_COUNT${NC}"
+    echo -e "Completed tasks: ${GREEN}$COMPLETE_COUNT${NC}"
+
+    if [ "$ACTIVE_COUNT" -gt 0 ]; then
+        echo ""
+        echo -e "${BLUE}Active Tasks:${NC}"
+        find .claude/state/agents -name "*.start" 2>/dev/null | while read -r start_file; do
+            TASK_ID=$(basename "$start_file" .start)
+            AGENT_TYPE=$(basename "$(dirname "$start_file")")
+            STARTED=$(jq -r '.started_at // "unknown"' "$start_file" 2>/dev/null || echo "unknown")
+            echo "  - $TASK_ID ($AGENT_TYPE) started at $STARTED"
+        done
+    fi
+}
+
+cmd_blockers() {
+    local plan_id="${1:-unknown}"
+
+    echo -e "${BLUE}🔍 Detecting Blockers${NC}"
+    echo ""
+
+    cd "$PROJECT_ROOT"
+    python3 "$SCRIPT_DIR/replanning.py" detect "$plan_id"
+}
+
+cmd_history() {
+    local plan_id="${1}"
+
+    if [ -z "$plan_id" ]; then
+        echo -e "${RED}Error: Plan ID required${NC}"
+        echo "Usage: orchestrate history <plan_id>"
+        exit 1
+    fi
+
+    echo -e "${BLUE}📜 Re-planning History for: $plan_id${NC}"
+    echo ""
+
+    cd "$PROJECT_ROOT"
+    python3 "$SCRIPT_DIR/replanning.py" history "$plan_id"
+}
+
+cmd_stats() {
+    echo -e "${BLUE}📈 Fractal Memory Statistics${NC}"
+    echo ""
+
+    cd "$PROJECT_ROOT"
+    python3 -c "
+import sys
+sys.path.insert(0, '.claude/fractal')
+from fractal_memory import FractalMemory
+
+memory = FractalMemory()
+stats = memory.get_statistics()
+
+print('User Level:')
+print(f'  Projects: {stats[\"user_level\"][\"projects\"]}')
+print(f'  Research: {stats[\"user_level\"][\"research\"]}')
+print('')
+print('Opus Level:')
+print(f'  Seed Rules: {stats[\"opus_level\"][\"seed_rules\"]}')
+print(f'  Patterns: {stats[\"opus_level\"][\"patterns\"]}')
+print('')
+print('Sonnet Level:')
+print(f'  Task Contexts: {stats[\"sonnet_level\"][\"task_contexts\"]}')
+print(f'  Results: {stats[\"sonnet_level\"][\"results\"]}')
+print('')
+print('Haiku Level:')
+print(f'  Step Contexts: {stats[\"haiku_level\"][\"step_contexts\"]}')
+print(f'  Step Results: {stats[\"haiku_level\"][\"step_results\"]}')
+"
+}
+
+cmd_help() {
+    cat <<EOF
+${BLUE}Orchestrate - Fractal Orchestration CLI${NC}
+
+Usage:
+  orchestrate <command> [options]
+
+Commands:
+  execute <plan.json> [strategy]  Execute a plan
+                                  Strategies: parallel, sequential, balanced, adaptive
+                                  Default: balanced
+
+  status                          Show current execution status
+
+  blockers [plan_id]              Detect blocked tasks
+
+  history <plan_id>               Show re-planning history for plan
+
+  stats                           Show fractal memory statistics
+
+  help                            Show this help message
+
+Examples:
+  ${GREEN}orchestrate execute .claude/plans/sample-plan.json${NC}
+  ${GREEN}orchestrate execute plan.json parallel${NC}
+  ${GREEN}orchestrate status${NC}
+  ${GREEN}orchestrate blockers plan-001${NC}
+  ${GREEN}orchestrate history plan-001${NC}
+  ${GREEN}orchestrate stats${NC}
+
+EOF
+}
+
+# Main command router
+
+COMMAND="${1:-help}"
+
+case "$COMMAND" in
+    execute)
+        shift
+        cmd_execute "$@"
+        ;;
+    status)
+        cmd_status
+        ;;
+    blockers)
+        shift
+        cmd_blockers "$@"
+        ;;
+    history)
+        shift
+        cmd_history "$@"
+        ;;
+    stats)
+        cmd_stats
+        ;;
+    help|--help|-h)
+        cmd_help
+        ;;
+    *)
+        echo -e "${RED}Unknown command: $COMMAND${NC}"
+        echo ""
+        cmd_help
+        exit 1
+        ;;
+esac

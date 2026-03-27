@@ -1,0 +1,27 @@
+{
+  "skill": "pdf",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — plain language description (e.g. 'extract text from pages 1-5', 'merge these two PDFs', 'fill form field Name with John')"
+    },
+    "optional": {
+      "source_file": "path — input PDF file",
+      "output_file": "path — where to save output",
+      "output_format": "markdown|json|text — for extraction tasks",
+      "pages": "string — page range e.g. '1-5' or '3,7,9'"
+    },
+    "context": {
+      "project": "string — project name for references",
+      "parent_task": "string — orchestration reference",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — extracted text, file path, or operation summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

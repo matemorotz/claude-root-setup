@@ -1,0 +1,193 @@
+{
+  "archetype_name": "governor_specialist",
+  "description": "Governor orchestrates multiple specialist agents with centralized planning and context management",
+  "complexity": "medium",
+  "use_when": "Multi-agent orchestration where a central planner coordinates domain-specific specialists",
+  "node_count": 7,
+  "subgraphs": ["plan_node", "context_node", "next_node"],
+  "specialist_count_range": [2, 5],
+
+  "state_schema": {
+    "parent_state": {
+      "class_name": "GovernorState",
+      "fields": [
+        {
+          "name": "messages",
+          "type": "Annotated[List[AnyMessage], add_messages]",
+          "description": "Conversation history visible to all agents"
+        },
+        {
+          "name": "context",
+          "type": "List[Any]",
+          "description": "Accumulated facts extracted from conversation"
+        },
+        {
+          "name": "plan",
+          "type": "str",
+          "description": "JSON string of execution plan"
+        },
+        {
+          "name": "last_context_message",
+          "type": "int",
+          "description": "Pointer to last processed message for context updates"
+        }
+      ]
+    },
+    "plan_node_state": {
+      "class_name": "PlanNodeState",
+      "inherits_from": "GovernorState",
+      "local_fields": [
+        {
+          "name": "node_messages",
+          "type": "List[AnyMessage]",
+          "description": "Isolated conversation thread for plan generation"
+        },
+        {
+          "name": "wrong_syntax_counter",
+          "type": "int",
+          "description": "Track JSON syntax errors for retry limit"
+        },
+        {
+          "name": "failed_review_counter",
+          "type": "int",
+          "description": "Track review rejections for retry limit"
+        }
+      ]
+    }
+  },
+
+  "nodes": [
+    {
+      "name": "init_state",
+      "type": "synchronous",
+      "purpose": "Initialize state with empty context and plan",
+      "inputs": ["messages"],
+      "outputs": ["context", "plan", "last_context_message"],
+      "processing": "Set context=[], plan='', last_context_message=0"
+    },
+    {
+      "name": "plan_node",
+      "type": "subgraph",
+      "purpose": "Generate and validate execution plan",
+      "inputs": ["messages", "context", "plan"],
+      "outputs": ["plan"],
+      "processing": "Builder → Syntax Check → Reviewer → Output validation pattern"
+    },
+    {
+      "name": "context_node",
+      "type": "subgraph",
+      "purpose": "Update accumulated facts from specialist results",
+      "inputs": ["messages", "context", "last_context_message"],
+      "outputs": ["context", "last_context_message"],
+      "processing": "Extract facts from messages since last_context_message"
+    },
+    {
+      "name": "next_node",
+      "type": "async_llm",
+      "purpose": "Route to appropriate specialist or END",
+      "inputs": ["messages", "context", "plan"],
+      "outputs": ["messages"],
+      "processing": "Analyze plan, determine next agent, encode routing in message"
+    },
+    {
+      "name": "specialist_1",
+      "type": "react_agent",
+      "purpose": "Domain-specific task execution",
+      "inputs": ["messages"],
+      "outputs": ["messages"],
+      "processing": "ReAct pattern with MCP tools"
+    },
+    {
+      "name": "specialist_2",
+      "type": "react_agent",
+      "purpose": "Domain-specific task execution",
+      "inputs": ["messages"],
+      "outputs": ["messages"],
+      "processing": "ReAct pattern with MCP tools"
+    },
+    {
+      "name": "specialist_N",
+      "type": "react_agent",
+      "purpose": "Additional specialists as needed",
+      "inputs": ["messages"],
+      "outputs": ["messages"],
+      "processing": "ReAct pattern with MCP tools"
+    }
+  ],
+
+  "edges": [
+    {
+      "from": "START",
+      "to": "init_state",
+      "type": "direct",
+      "description": "Begin with initialization"
+    },
+    {
+      "from": "init_state",
+      "to": "plan_node",
+      "type": "direct",
+      "description": "Generate initial plan"
+    },
+    {
+      "from": "plan_node",
+      "to": "next_node",
+      "type": "direct",
+      "description": "Plan complete, route next"
+    },
+    {
+      "from": "specialist_1",
+      "to": "context_node",
+      "type": "direct",
+      "description": "Update context after specialist execution"
+    },
+    {
+      "from": "specialist_2",
+      "to": "context_node",
+      "type": "direct",
+      "description": "Update context after specialist execution"
+    },
+    {
+      "from": "context_node",
+      "to": "END",
+      "type": "conditional",
+      "routing_function": "context_edge",
+      "destinations": ["next_node", "END"],
+      "logic": "If same agent called twice consecutively: END, else: next_node"
+    }
+  ],
+
+  "conditional_edges": [
+    {
+      "from": "next_node",
+      "routing_function": "route_next",
+      "destinations": ["specialist_1", "specialist_2", "specialist_N", "context_node", "END"],
+      "logic": "Decode routing decision from last message, route to specialist or END",
+      "termination_conditions": [
+        "agent_name == 'END'",
+        "plan_complete flag set",
+        "iteration_count > 50",
+        "error_count > 5"
+      ]
+    }
+  ],
+
+  "termination_patterns": [
+    "Governor routes to END explicitly",
+    "Same agent called twice (handled in context_edge)",
+    "Safety counter limits (iteration, error)"
+  ],
+
+  "key_features": [
+    "Centralized planning and context management",
+    "State isolation between parent and subgraphs",
+    "Validation pattern (builder → syntax → reviewer → output)",
+    "Dynamic specialist routing",
+    "MCP tool integration via ReAct agents",
+    "Multi-layer termination conditions"
+  ],
+
+  "production_examples": [
+    "CoreTeam governor with booking/gmail/calendar agents",
+    "Fly Achensee customer communication workflow"
+  ]
+}

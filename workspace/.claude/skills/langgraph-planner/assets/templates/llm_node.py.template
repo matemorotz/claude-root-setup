@@ -1,0 +1,42 @@
+"""LLM node implementation for {{node_name}}"""
+
+from typing import Dict, Any
+from langchain_core.messages import SystemMessage, AIMessage
+from langchain_core.language_models import BaseChatModel
+
+
+async def {{node_name}}_node(state: {{StateClass}}, model: BaseChatModel) -> Dict[str, Any]:
+    """
+    {{node_description}}
+
+    Inputs: {{inputs}}
+    Outputs: {{outputs}}
+    Processing: {{processing_description}}
+    """
+    try:
+        # TODO: Load system prompt from external file
+        # system_prompt = read_system_prompt("{{node_name}}")
+
+        # Build context window
+        context_window = [
+            SystemMessage(content="TODO: Add system prompt"),
+            # TODO: Add any additional context messages
+        ] + state.get('messages', [])
+
+        # Call LLM
+        response = await model.ainvoke(context_window)
+
+        # Return partial state update
+        return {
+            "messages": [response],
+            # TODO: Add other state fields to update
+            # "iteration_count": state.get("iteration_count", 0) + 1,
+        }
+
+    except Exception as e:
+        # Graceful error handling
+        error_msg = AIMessage(content=f"Error in {{node_name}}: {str(e)}", name="error")
+        return {
+            "messages": [error_msg],
+            "error_count": state.get("error_count", 0) + 1
+        }

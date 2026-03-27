@@ -1,0 +1,137 @@
+{
+  "archetype_name": "parallel_processor",
+  "description": "Process multiple independent items concurrently with error isolation",
+  "complexity": "medium",
+  "use_when": "Batch processing where one failure shouldn't crash others, need concurrent execution",
+  "node_count": 4,
+  "subgraphs": [],
+
+  "state_schema": {
+    "class_name": "ParallelProcessorState",
+    "fields": [
+      {
+        "name": "messages",
+        "type": "Annotated[List[AnyMessage], add_messages]",
+        "description": "Conversation history"
+      },
+      {
+        "name": "items_to_process",
+        "type": "List[Dict[str, Any]]",
+        "description": "Input items for processing"
+      },
+      {
+        "name": "processed_items",
+        "type": "List[Dict[str, Any]]",
+        "description": "Successfully processed results"
+      },
+      {
+        "name": "failed_items",
+        "type": "List[Dict[str, Any]]",
+        "description": "Failed items with error details"
+      },
+      {
+        "name": "success_count",
+        "type": "int",
+        "description": "Count of successful processings"
+      },
+      {
+        "name": "failure_count",
+        "type": "int",
+        "description": "Count of failed processings"
+      }
+    ]
+  },
+
+  "nodes": [
+    {
+      "name": "init_state",
+      "type": "synchronous",
+      "purpose": "Initialize tracking counters",
+      "inputs": ["items_to_process"],
+      "outputs": ["success_count", "failure_count"],
+      "processing": "Set success_count=0, failure_count=0"
+    },
+    {
+      "name": "parallel_processor",
+      "type": "async_parallel",
+      "purpose": "Process all items concurrently with error isolation",
+      "inputs": ["items_to_process"],
+      "outputs": ["processed_items", "failed_items", "success_count", "failure_count"],
+      "processing": "asyncio.gather with Semaphore, catch exceptions per item",
+      "concurrency_limit": 5
+    },
+    {
+      "name": "summarize_results",
+      "type": "synchronous",
+      "purpose": "Generate summary of batch processing",
+      "inputs": ["processed_items", "failed_items", "success_count", "failure_count"],
+      "outputs": ["messages"],
+      "processing": "Create summary message with statistics"
+    }
+  ],
+
+  "edges": [
+    {
+      "from": "START",
+      "to": "init_state",
+      "type": "direct"
+    },
+    {
+      "from": "init_state",
+      "to": "parallel_processor",
+      "type": "direct"
+    },
+    {
+      "from": "parallel_processor",
+      "to": "summarize_results",
+      "type": "direct"
+    },
+    {
+      "from": "summarize_results",
+      "to": "END",
+      "type": "direct"
+    }
+  ],
+
+  "conditional_edges": [],
+
+  "termination_patterns": [
+    "All items processed (success or failure)",
+    "Summary generated"
+  ],
+
+  "implementation_pattern": {
+    "parallel_processing": {
+      "code_snippet": "async def process_items_parallel(items: List[Dict], max_concurrent: int = 5) -> List[Dict]: semaphore = asyncio.Semaphore(max_concurrent); async def process_one(item): async with semaphore: try: result = await process_single_item(item); return {'status': 'success', 'result': result}; except Exception as e: return {'status': 'error', 'error': str(e)}; results = await asyncio.gather(*[process_one(item) for item in items]); return results"
+    },
+    "error_isolation": {
+      "principle": "Each item processed in try-except block, exceptions logged but not propagated"
+    },
+    "state_extension": {
+      "pattern": "Use bus object to extend state without modifying LangGraph schema",
+      "example": "class ProcessingBus: results: List[Dict]; success_count: int; failure_count: int"
+    }
+  },
+
+  "key_features": [
+    "Concurrent processing with Semaphore rate limiting",
+    "Error isolation (one failure doesn't crash batch)",
+    "Detailed result tracking (success/failure lists)",
+    "Statistics generation (success rate, failure count)",
+    "Graceful degradation (partial success acceptable)"
+  ],
+
+  "use_cases": [
+    "Email batch processing",
+    "Multi-document analysis",
+    "Bulk data transformations",
+    "API batch requests",
+    "Parallel task execution"
+  ],
+
+  "production_examples": [
+    "Email Solver parallel email processing",
+    "Batch document classification",
+    "Multi-file conversion"
+  ]
+}

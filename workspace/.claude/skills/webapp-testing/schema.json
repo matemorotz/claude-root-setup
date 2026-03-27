@@ -1,0 +1,27 @@
+{
+  "skill": "webapp-testing",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — plain language description (e.g. 'take screenshot of homepage', 'verify login form works', 'check all nav links')"
+    },
+    "optional": {
+      "url": "string — URL to test (e.g. 'http://localhost:3000')",
+      "browser": "chromium|firefox|webkit — browser to use (default: chromium)",
+      "screenshot_dir": "path — where to save screenshots",
+      "test_script": "path — existing Playwright test script to run"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — test results, DOM data, or screenshot paths",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

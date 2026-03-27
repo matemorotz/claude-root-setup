@@ -1,0 +1,7 @@
+{
+  "id": "tech_stack_decision",
+  "goal": "Ensure new code uses only the approved technology stack to avoid dependency sprawl",
+  "grounding": "project.md#tech-stack",
+  "rule": "Use only the approved stack: Python 3.11, FastAPI, SQLAlchemy ORM, PostgreSQL, Redis for caching",
+  "connected_seed_rules": {}
+}

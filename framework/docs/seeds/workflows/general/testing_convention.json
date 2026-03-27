@@ -1,0 +1,9 @@
+{
+  "id": "testing_convention",
+  "goal": "Ensure all tests follow established structure",
+  "grounding": "CLAUDE.md#testing",
+  "rule": "Use pytest with tests/ mirroring src/ and aim for 80%+ coverage",
+  "connected_seed_rules": {
+    "general": ["coding_style_convention"]
+  }
+}

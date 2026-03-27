@@ -1,0 +1,61 @@
+"""Validation node implementation for {{node_name}}"""
+
+from typing import Dict, Any
+from langchain_core.messages import AIMessage
+import json
+
+APPROVED_TOKEN = "[APPROVED]"
+REJECTED_TOKEN = "[REJECTED]"
+
+
+def {{node_name}}_validation_node(state: {{StateClass}}) -> Dict[str, Any]:
+    """
+    Validate {{validation_target}} for correctness.
+
+    Inputs: {{inputs}}
+    Outputs: {{outputs}}
+    Processing: Syntax + schema validation with retry counter
+    """
+    MAX_RETRIES = 3
+
+    def handle_error(error_msg: str) -> Dict[str, Any]:
+        """Handle validation error with retry limit"""
+        if state.get("retry_count", 0) < MAX_RETRIES:
+            return {
+                "node_messages": state.get('node_messages', []) +
+                    [AIMessage(content=f"{REJECTED_TOKEN} {error_msg}")],
+                "retry_count": state.get("retry_count", 0) + 1
+            }
+        else:
+            # TODO: Decide how to handle max retries
+            # Option 1: Raise exception
+            # raise AgentException(f"Max retries exceeded: {error_msg}")
+            # Option 2: Accept with warning
+            return {
+                "node_messages": state.get('node_messages', []) +
+                    [AIMessage(content=f"{APPROVED_TOKEN} (Accepted after max retries)")],
+            }
+
+    try:
+        # Extract content to validate
+        content = state['node_messages'][-1].content
+
+        # TODO: Extract JSON if wrapped in markdown
+        # content = extract_json_from_response(content)
+
+        # Parse JSON
+        obj = json.loads(content)
+
+        # TODO: Validate with Pydantic model if applicable
+        # validated = ValidationModel(**obj)
+
+        # Success
+        return {
+            "node_messages": state.get('node_messages', []) +
+                [AIMessage(content=APPROVED_TOKEN)]
+        }
+
+    except json.JSONDecodeError as e:
+        return handle_error(f"Invalid JSON syntax: {str(e)}")
+    except Exception as e:
+        return handle_error(f"Validation failed: {str(e)}")

@@ -1,0 +1,209 @@
+{
+  "archetype_name": "rag_pipeline",
+  "description": "Retrieval-Augmented Generation with iterative refinement loop for question answering",
+  "complexity": "medium",
+  "use_when": "Question answering requiring document search with quality evaluation and iterative improvement",
+  "node_count": 9,
+  "subgraphs": [],
+
+  "state_schema": {
+    "class_name": "RAGState",
+    "fields": [
+      {
+        "name": "messages",
+        "type": "Annotated[List[AnyMessage], add_messages]",
+        "description": "Conversation history"
+      },
+      {
+        "name": "kb_metadata",
+        "type": "NotRequired[Dict[str, Any]]",
+        "description": "Knowledge base overview (cached after first load)"
+      },
+      {
+        "name": "retrieved_docs",
+        "type": "NotRequired[List[str]]",
+        "description": "Documents retrieved from search"
+      },
+      {
+        "name": "expanded_context",
+        "type": "NotRequired[str]",
+        "description": "Expanded contextual information"
+      },
+      {
+        "name": "routing_decision",
+        "type": "NotRequired[str]",
+        "description": "SEARCH or DIRECT routing"
+      },
+      {
+        "name": "confidence_score",
+        "type": "NotRequired[float]",
+        "description": "Answer quality confidence (0.0-1.0)"
+      },
+      {
+        "name": "search_iteration",
+        "type": "NotRequired[int]",
+        "description": "Refinement loop counter (max 2)"
+      },
+      {
+        "name": "tokens_used_this_turn",
+        "type": "NotRequired[int]",
+        "description": "Token tracking per turn"
+      },
+      {
+        "name": "tokens_used_session",
+        "type": "NotRequired[int]",
+        "description": "Cumulative token usage"
+      }
+    ]
+  },
+
+  "nodes": [
+    {
+      "name": "init_state",
+      "type": "synchronous",
+      "purpose": "Initialize tracking fields",
+      "inputs": ["messages"],
+      "outputs": ["search_iteration", "tokens_used_this_turn"],
+      "processing": "Set search_iteration=0, tokens_used_this_turn=0"
+    },
+    {
+      "name": "load_kb_metadata",
+      "type": "async",
+      "purpose": "Load KB overview (cached after first load)",
+      "inputs": ["kb_metadata"],
+      "outputs": ["kb_metadata"],
+      "processing": "If not cached, fetch KB overview (~500-800 tokens)"
+    },
+    {
+      "name": "routing_node",
+      "type": "async_llm",
+      "purpose": "Decide if search is needed or can answer directly",
+      "inputs": ["messages", "kb_metadata"],
+      "outputs": ["messages", "routing_decision"],
+      "processing": "LLM analyzes question complexity, decides SEARCH or DIRECT"
+    },
+    {
+      "name": "search_documents",
+      "type": "async_tool",
+      "purpose": "Retrieve relevant documents",
+      "inputs": ["messages", "retrieved_docs", "search_iteration"],
+      "outputs": ["retrieved_docs", "search_iteration"],
+      "processing": "Search KB with query, append results, increment iteration"
+    },
+    {
+      "name": "evaluate_results",
+      "type": "async_llm",
+      "purpose": "Assess if results are sufficient",
+      "inputs": ["messages", "retrieved_docs", "search_iteration"],
+      "outputs": ["routing_decision", "confidence_score"],
+      "processing": "LLM evaluates quality, decides SUFFICIENT or REFINE (max 2 iterations)"
+    },
+    {
+      "name": "answer_node",
+      "type": "async_llm",
+      "purpose": "Generate answer from docs or direct knowledge",
+      "inputs": ["messages", "retrieved_docs", "kb_metadata"],
+      "outputs": ["messages", "confidence_score"],
+      "processing": "LLM generates answer, includes confidence score"
+    },
+    {
+      "name": "context_expander",
+      "type": "async_llm",
+      "purpose": "Conditionally expand context for better answers",
+      "inputs": ["messages", "confidence_score", "expanded_context"],
+      "outputs": ["expanded_context"],
+      "processing": "If confidence < 0.8, expand context (~2000 tokens), otherwise skip"
+    }
+  ],
+
+  "edges": [
+    {
+      "from": "START",
+      "to": "init_state",
+      "type": "direct"
+    },
+    {
+      "from": "init_state",
+      "to": "load_kb_metadata",
+      "type": "direct"
+    },
+    {
+      "from": "load_kb_metadata",
+      "to": "routing_node",
+      "type": "direct"
+    },
+    {
+      "from": "search_documents",
+      "to": "evaluate_results",
+      "type": "direct"
+    },
+    {
+      "from": "answer_node",
+      "to": "context_expander",
+      "type": "direct"
+    },
+    {
+      "from": "context_expander",
+      "to": "END",
+      "type": "direct"
+    }
+  ],
+
+  "conditional_edges": [
+    {
+      "from": "routing_node",
+      "routing_function": "route_question_edge",
+      "destinations": ["search_documents", "answer_node"],
+      "logic": "If routing_decision == 'SEARCH': search_documents, else: answer_node"
+    },
+    {
+      "from": "evaluate_results",
+      "routing_function": "evaluate_results_edge",
+      "destinations": ["answer_node", "search_documents"],
+      "logic": "If routing_decision == 'SUFFICIENT' or search_iteration >= 2: answer_node, else: search_documents",
+      "termination_conditions": [
+        "routing_decision == 'SUFFICIENT'",
+        "search_iteration >= 2 (max refinement)"
+      ]
+    }
+  ],
+
+  "termination_patterns": [
+    "Direct answer path (no search needed)",
+    "Search results sufficient",
+    "Max refinement iterations (2) reached"
+  ],
+
+  "token_optimization_strategies": [
+    {
+      "name": "KB Overview Caching (OPT 1.1)",
+      "savings": "~500-800 tokens/turn",
+      "implementation": "Load once, reuse across turns"
+    },
+    {
+      "name": "Conversation History Windowing (OPT 1.3)",
+      "savings": "~600 tokens/turn",
+      "implementation": "Keep system message + last 11 messages"
+    },
+    {
+      "name": "Conditional Context Expansion (OPT 2.1)",
+      "savings": "~2000 tokens when skipped",
+      "implementation": "Only expand if confidence < 0.8"
+    }
+  ],
+
+  "key_features": [
+    "Two-path routing (direct answer vs search)",
+    "Iterative refinement loop (max 2 iterations)",
+    "Quality evaluation between search attempts",
+    "Token optimization through caching and conditional expansion",
+    "Confidence scoring for answer quality",
+    "Graceful degradation (accept results after max iterations)"
+  ],
+
+  "production_examples": [
+    "PETI conversation graph with 9 nodes",
+    "Document Q&A systems",
+    "Knowledge base assistants"
+  ]
+}

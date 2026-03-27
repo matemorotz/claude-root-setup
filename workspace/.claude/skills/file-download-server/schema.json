@@ -1,0 +1,26 @@
+{
+  "skill": "file-download-server",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — description of what to serve (e.g. 'serve PDF files from /tmp/reports on port 8080')"
+    },
+    "optional": {
+      "port": "number — port to serve on (default: 8080)",
+      "directory": "path — directory to serve files from",
+      "extension_map": "object — custom MIME type mappings e.g. {'.pdf': 'application/pdf'}"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — server URL and configuration",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

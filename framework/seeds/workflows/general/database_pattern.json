@@ -1,0 +1,7 @@
+{
+  "id": "database_pattern",
+  "goal": "Ensure all database models and queries follow the established ORM pattern",
+  "grounding": "app/models/user.py",
+  "rule": "Use SQLAlchemy ORM for all database models and queries",
+  "connected_seed_rules": {}
+}

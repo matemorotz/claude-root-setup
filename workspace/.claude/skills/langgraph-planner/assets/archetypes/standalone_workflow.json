@@ -1,0 +1,160 @@
+{
+  "archetype_name": "standalone_workflow",
+  "description": "Simple linear or branching workflow for single-purpose tasks",
+  "complexity": "simple",
+  "use_when": "Focused task with clear steps, no multi-agent orchestration needed",
+  "node_count_range": [3, 7],
+  "subgraphs": [],
+
+  "state_schema": {
+    "class_name": "WorkflowState",
+    "fields": [
+      {
+        "name": "messages",
+        "type": "Annotated[List[AnyMessage], add_messages]",
+        "description": "Conversation history"
+      },
+      {
+        "name": "input_data",
+        "type": "Dict[str, Any]",
+        "description": "Structured input data"
+      },
+      {
+        "name": "output_data",
+        "type": "Dict[str, Any]",
+        "description": "Processed output data"
+      },
+      {
+        "name": "iteration_count",
+        "type": "int",
+        "description": "Safety counter for loops"
+      },
+      {
+        "name": "task_complete",
+        "type": "bool",
+        "description": "Completion flag"
+      }
+    ]
+  },
+
+  "nodes": [
+    {
+      "name": "init_state",
+      "type": "synchronous",
+      "purpose": "Initialize working state",
+      "inputs": ["messages", "input_data"],
+      "outputs": ["iteration_count", "task_complete"],
+      "processing": "Set iteration_count=0, task_complete=False"
+    },
+    {
+      "name": "process_input",
+      "type": "async_llm",
+      "purpose": "Analyze and process input",
+      "inputs": ["messages", "input_data"],
+      "outputs": ["messages", "output_data"],
+      "processing": "LLM analyzes input, generates initial output"
+    },
+    {
+      "name": "validate_output",
+      "type": "synchronous",
+      "purpose": "Validate output meets requirements",
+      "inputs": ["output_data"],
+      "outputs": ["task_complete", "iteration_count"],
+      "processing": "Check output, set task_complete or increment iteration"
+    },
+    {
+      "name": "refine_output",
+      "type": "async_llm",
+      "purpose": "Improve output based on validation",
+      "inputs": ["messages", "output_data"],
+      "outputs": ["output_data"],
+      "processing": "LLM refines output addressing validation issues"
+    },
+    {
+      "name": "finalize",
+      "type": "synchronous",
+      "purpose": "Prepare final output",
+      "inputs": ["output_data"],
+      "outputs": ["output_data", "task_complete"],
+      "processing": "Format output, set task_complete=True"
+    }
+  ],
+
+  "edges": [
+    {
+      "from": "START",
+      "to": "init_state",
+      "type": "direct"
+    },
+    {
+      "from": "init_state",
+      "to": "process_input",
+      "type": "direct"
+    },
+    {
+      "from": "process_input",
+      "to": "validate_output",
+      "type": "direct"
+    },
+    {
+      "from": "refine_output",
+      "to": "validate_output",
+      "type": "direct",
+      "description": "Re-validate after refinement"
+    },
+    {
+      "from": "finalize",
+      "to": "END",
+      "type": "direct"
+    }
+  ],
+
+  "conditional_edges": [
+    {
+      "from": "validate_output",
+      "routing_function": "validation_router",
+      "destinations": ["finalize", "refine_output", "END"],
+      "logic": "If task_complete: finalize, elif iteration_count < 3: refine_output, else: END (accept current)",
+      "termination_conditions": [
+        "task_complete == True",
+        "iteration_count >= 3"
+      ]
+    }
+  ],
+
+  "termination_patterns": [
+    "Task completion flag set",
+    "Max iterations reached (safety limit)"
+  ],
+
+  "key_features": [
+    "Simple linear flow with optional refinement loop",
+    "Clear validation checkpoints",
+    "Safety counter prevents infinite loops",
+    "No subgraphs or complex orchestration"
+  ],
+
+  "variants": [
+    {
+      "name": "pure_linear",
+      "description": "No loops, straight path START → process → finalize → END",
+      "node_count": 3
+    },
+    {
+      "name": "with_refinement",
+      "description": "Includes validation loop (shown above)",
+      "node_count": 5
+    },
+    {
+      "name": "with_branching",
+      "description": "Conditional branch based on input type",
+      "node_count": 6
+    }
+  ],
+
+  "production_examples": [
+    "Email classification workflow",
+    "Document summarization pipeline",
+    "Data transformation process"
+  ]
+}

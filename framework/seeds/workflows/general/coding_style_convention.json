@@ -1,0 +1,7 @@
+{
+  "id": "coding_style_convention",
+  "goal": "Maintain consistent coding style for readability",
+  "grounding": "CLAUDE.md#coding-style",
+  "rule": "Use type hints in Python; Follow PEP 8 style guide; Use Pydantic for API schemas",
+  "connected_seed_rules": {}
+}

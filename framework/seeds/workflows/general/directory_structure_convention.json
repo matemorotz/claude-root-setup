@@ -1,0 +1,7 @@
+{
+  "id": "directory_structure_convention",
+  "goal": "Keep new files in established directories to maintain predictable project layout",
+  "grounding": "pattern:DirectoryStructure",
+  "rule": "Place new files following the established structure: tests in tests/ or test/; application code in app/",
+  "connected_seed_rules": {}
+}

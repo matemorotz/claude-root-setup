@@ -1,0 +1,84 @@
+# {{PROJECT_NAME}}
+
+**Type:** {{PROJECT_TYPE}}
+**Status:** Active
+
+## Workflow: general
+
+---
+
+## Quick Start
+
+```bash
+# Activate environment
+source venv/bin/activate
+
+# Run main entry point
+python main.py
+```
+
+---
+
+## Project Structure
+
+```
+{{PROJECT_NAME}}/
+├── CLAUDE.md           # This file - project configuration
+├── project.md          # Goals, architecture, roadmap
+├── state.md            # Current development status
+├── todo.md             # Task tracking
+│
+├── src/                # Source code
+│   ├── __init__.py
+│   └── main.py
+│
+├── tests/              # Test suite
+│   └── test_main.py
+│
+└── .claude/            # Claude Code configuration
+    └── memory/         # Fractal memory storage
+```
+
+---
+
+## Development Rules
+
+1. **Follow existing patterns** - Check project.md for architecture decisions
+2. **Type hints required** - All functions must have type annotations
+3. **Test before commit** - Run `pytest` before any commit
+4. **Document changes** - Update state.md after significant changes
+
+---
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/main.py` | Main entry point |
+| `configs/*.json` | Configuration files |
+| `tests/` | Test suite |
+
+---
+
+## MCP Integration
+
+Available MCP servers:
+- None configured yet
+
+To add MCP:
+1. Configure in `.env`
+2. Add to `mcp_config.json`
+3. Document in this file
+
+---
+
+## Context Loading
+
+**Seed Rules:** `seeds/workflows/general/*.json` (auto-generated on first session)
+
+Change the `## Workflow:` line above to scope rules to a specific workflow.
+The fractal orchestration system reads that value at session start to load the right seed chain.
+
+---
+
+**Fractal orchestration ready.**

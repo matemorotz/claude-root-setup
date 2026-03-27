@@ -1,0 +1,26 @@
+{
+  "skill": "testing-workflows",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — testing description (e.g. 'run all unit tests for CoreTeam', 'validate venv dependencies', 'A/B test the new caching implementation')"
+    },
+    "optional": {
+      "project_path": "path — project directory to test",
+      "test_command": "string — test command to run (e.g. 'pytest tests/', 'npm test')",
+      "venv_path": "path — virtual environment path"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — test results and coverage data",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

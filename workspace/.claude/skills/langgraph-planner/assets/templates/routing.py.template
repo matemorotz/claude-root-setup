@@ -1,0 +1,60 @@
+"""Routing functions for {{graph_name}} graph"""
+
+from langgraph.graph import END
+from typing import Literal
+
+
+def route_{{routing_name}}(state: {{StateClass}}) -> str:
+    """
+    Determine next node based on state analysis.
+
+    Routing logic: {{routing_logic}}
+    """
+
+    # ========================================
+    # TERMINATION CHECKS (ALWAYS FIRST)
+    # ========================================
+
+    # Explicit completion flag
+    if state.get("task_complete"):
+        return END
+
+    # Safety counters
+    if state.get("iteration_count", 0) > 50:
+        return END
+
+    if state.get("error_count", 0) > 5:
+        return END
+
+    # ========================================
+    # BUSINESS LOGIC ROUTING
+    # ========================================
+
+    # TODO: Implement routing logic based on state
+    # Examples:
+    #
+    # if state.get("needs_validation"):
+    #     return "validation_node"
+    #
+    # if state.get("routing_decision") == "SEARCH":
+    #     return "search_node"
+    #
+    # agent_name = decode_agent_from_message(state['messages'][-1])
+    # if agent_name in available_agents:
+    #     return agent_name
+
+    # Default termination
+    return END
+
+
+def approval_edge_{{node_name}}(state: {{StateClass}}) -> Literal["{{approved_dest}}", "{{rejected_dest}}"]:
+    """
+    Route based on approval/rejection token.
+
+    Approved: {{approved_dest}}
+    Rejected: {{rejected_dest}}
+    """
+    APPROVED_TOKEN = "[APPROVED]"
+
+    last_message = state['node_messages'][-1].content
+    return "{{approved_dest}}" if APPROVED_TOKEN in last_message else "{{rejected_dest}}"

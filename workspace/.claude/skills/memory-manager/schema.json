@@ -1,0 +1,26 @@
+{
+  "skill": "memory-manager",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — description of memory operation (e.g. 'search for past debugging solutions', 'update CLAUDE.md with new pattern', 'check memory system health')"
+    },
+    "optional": {
+      "operation": "read|write|search|classify|health — operation type",
+      "query": "string — search query for memory lookup",
+      "classification": "string — memory classification tag"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — memory content, search results, or operation status",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "skill": "worktree",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — worktree operation (e.g. 'create dev worktree for CoreTeam', 'list all worktrees', 'cleanup stale worktrees')"
+    },
+    "optional": {
+      "project_path": "path — git repository path",
+      "branch_name": "string — branch name for new worktree",
+      "operation": "create|list|cleanup|remove — operation type"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — worktree path, list, or cleanup summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

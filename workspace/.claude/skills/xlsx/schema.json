@@ -1,0 +1,27 @@
+{
+  "skill": "xlsx",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — plain language description (e.g. 'create a budget spreadsheet', 'read column A values', 'add SUM formula to row 10')"
+    },
+    "optional": {
+      "source_file": "path — input .xlsx/.csv file",
+      "output_file": "path — where to save output",
+      "sheet": "string — sheet name or index",
+      "formula_mode": "boolean — preserve and recalculate formulas"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — data, analysis, or operation summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

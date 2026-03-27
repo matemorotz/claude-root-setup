@@ -1,0 +1,26 @@
+{
+  "skill": "azure-devops-git",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — git operation description (e.g. 'push current branch to Azure DevOps', 'configure PAT credentials for CoreTeam')"
+    },
+    "optional": {
+      "repo": "string — Azure DevOps repository URL or name",
+      "branch": "string — target branch name",
+      "pat_env_var": "string — environment variable name containing PAT token"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — git operation result",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

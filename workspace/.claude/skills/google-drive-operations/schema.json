@@ -1,0 +1,26 @@
+{
+  "skill": "google-drive-operations",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — description of Drive operation (e.g. 'upload report.pdf to /Reports folder', 'search for files named budget', 'create folder Q1-2026')"
+    },
+    "optional": {
+      "operation": "upload|download|search|create-folder|move|delete — operation type",
+      "file_path": "path — local file path for upload/download",
+      "folder_id": "string — Google Drive folder ID"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — file ID, search results, or operation summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

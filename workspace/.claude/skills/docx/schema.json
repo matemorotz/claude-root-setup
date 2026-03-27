@@ -1,0 +1,27 @@
+{
+  "skill": "docx",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — plain language description (e.g. 'create a report with headings', 'add tracked changes to paragraph 3', 'extract all text')"
+    },
+    "optional": {
+      "source_file": "path — input .docx file",
+      "output_file": "path — where to save output",
+      "track_changes": "boolean — enable tracked changes mode",
+      "template": "path — .docx template to base document on"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — extracted content or operation summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

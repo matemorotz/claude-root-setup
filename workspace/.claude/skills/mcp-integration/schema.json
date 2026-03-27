@@ -1,0 +1,26 @@
+{
+  "skill": "mcp-integration",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — description of MCP integration needed (e.g. 'add MCP endpoint to memory system', 'setup auth for port 8002')"
+    },
+    "optional": {
+      "project_path": "path — project directory to integrate into",
+      "port": "number — port for MCP server",
+      "auth_type": "bearer|api-key|none — authentication type"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — integration summary with endpoint details",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "skill": "managing-servers",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — server operation description (e.g. 'harden SSH on devserver', 'check nginx status', 'rotate API key for MT5 VPS')"
+    },
+    "optional": {
+      "host": "string — server hostname or IP (e.g. 'devserver', '72.60.84.201')",
+      "operation": "connect|configure|harden|monitor|manage-users|rotate-keys",
+      "key_path": "path — SSH private key path"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — operation result",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

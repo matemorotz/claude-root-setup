@@ -1,0 +1,7 @@
+{
+  "id": "image_processing_dependency",
+  "goal": "Ensure image processing dependencies are available before use",
+  "grounding": "pattern:image_processing",
+  "rule": "Use Pillow for image validation",
+  "connected_seed_rules": {}
+}

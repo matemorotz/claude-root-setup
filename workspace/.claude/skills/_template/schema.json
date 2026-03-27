@@ -1,0 +1,26 @@
+{
+  "skill": "{skill}",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — plain language description of what to do"
+    },
+    "optional": {
+      "source_file": "path — input file if applicable",
+      "output_file": "path — output file if applicable",
+      "output_format": "string — desired output format"
+    },
+    "context": {
+      "project": "string — project name for references",
+      "parent_task": "string — orchestration reference",
+      "dependencies": ["skill-name — skills this task depends on"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — skill-specific result",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

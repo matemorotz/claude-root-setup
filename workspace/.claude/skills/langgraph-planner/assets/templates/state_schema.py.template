@@ -1,0 +1,48 @@
+"""State schema for {{graph_name}} graph
+
+This file defines the TypedDict state schemas used by the graph.
+"""
+
+from typing_extensions import TypedDict, Annotated, NotRequired
+from typing import List, Dict, Any
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage
+
+
+class {{GraphName}}State(TypedDict):
+    """
+    Main state schema for {{graph_name}} graph.
+
+    State fields are shared across all nodes in the graph.
+    Nodes return partial updates (Dict[str, Any]) containing only changed fields.
+    """
+
+    # Message history (automatically accumulated with add_messages reducer)
+    messages: Annotated[List[AnyMessage], add_messages]
+
+    # TODO: Add your state fields here
+    # Example fields:
+    # context: List[Any]  # Accumulated facts
+    # plan: str  # Execution plan (JSON string)
+    # iteration_count: int  # Safety counter
+    # task_complete: bool  # Completion flag
+    # error_count: int  # Error tracking
+
+{{#if_subgraph}}
+
+class {{SubgraphName}}State(TypedDict):
+    """
+    Subgraph state - inherits parent state + adds local fields.
+
+    Local fields are isolated to this subgraph and not visible to parent.
+    """
+
+    # Inherited from parent
+    messages: Annotated[List[AnyMessage], add_messages]
+    # TODO: Add other inherited fields from parent state
+
+    # Local fields (isolated to subgraph)
+    node_messages: List[AnyMessage]  # Isolated conversation thread
+    retry_count: int  # Retry tracking
+    # TODO: Add other local fields needed for this subgraph
+{{/if_subgraph}}

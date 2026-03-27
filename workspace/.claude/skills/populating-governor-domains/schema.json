@@ -1,0 +1,27 @@
+{
+  "skill": "populating-governor-domains",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — domain creation description",
+      "domain_name": "string — name of the new domain (e.g. 'advertising', 'user_communication')"
+    },
+    "optional": {
+      "project_path": "path — project root (default: fly_achensee_customer)",
+      "level": "number — domain level 1|2|3",
+      "parent_domain": "string — parent domain name if nested"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — domain creation summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

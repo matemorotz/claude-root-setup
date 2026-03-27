@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-code.dev/schemas/research-output.schema.json",
+  "title": "Research Output",
+  "description": "Structured research findings from ResearchAgent",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["version", "research_id", "created", "topic", "findings"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "research_id": {
+      "type": "string"
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "topic": {
+      "type": "object",
+      "required": ["name", "category"],
+      "properties": {
+        "name": {"type": "string"},
+        "category": {"type": "string", "enum": ["framework", "standard", "best_practice", "example", "security", "architecture"]},
+        "version": {"type": "string"},
+        "status": {"type": "string", "enum": ["current", "deprecated", "experimental"]}
+      }
+    },
+    "findings": {
+      "type": "object",
+      "properties": {
+        "overview": {"type": "string"},
+        "key_concepts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "concept": {"type": "string"},
+              "description": {"type": "string"}
+            }
+          }
+        },
+        "official_examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {"type": "string"},
+              "code": {"type": "string"},
+              "language": {"type": "string"},
+              "source_url": {"type": "string"}
+            }
+          }
+        },
+        "best_practices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "practice": {"type": "string"},
+              "rationale": {"type": "string"},
+              "example": {"type": "string"}
+            }
+          }
+        },
+        "common_pitfalls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pitfall": {"type": "string"},
+              "consequence": {"type": "string"},
+              "solution": {"type": "string"}
+            }
+          }
+        },
+        "security_considerations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "aspect": {"type": "string"},
+              "risk_level": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+              "mitigation": {"type": "string"}
+            }
+          }
+        },
+        "performance_tips": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tip": {"type": "string"},
+              "impact": {"type": "string", "enum": ["minor", "moderate", "significant", "major"]},
+              "implementation": {"type": "string"}
+            }
+          }
+        },
+        "industry_standards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "standard": {"type": "string"},
+              "organization": {"type": "string"},
+              "description": {"type": "string"},
+              "reference_url": {"type": "string"}
+            }
+          }
+        },
+        "related_technologies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "technology": {"type": "string"},
+              "relationship": {"type": "string"},
+              "use_case": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {"type": "string", "enum": ["official_docs", "github_repo", "article", "video", "book", "paper"]},
+          "title": {"type": "string"},
+          "url": {"type": "string", "format": "uri"},
+          "author": {"type": "string"},
+          "date": {"type": "string", "format": "date"},
+          "credibility": {"type": "string", "enum": ["official", "authoritative", "community", "unverified"]}
+        }
+      }
+    },
+    "integration_notes": {
+      "type": "object",
+      "properties": {
+        "project_name": {"type": "string"},
+        "how_to_integrate": {"type": "string"},
+        "dependencies": {"type": "array", "items": {"type": "string"}},
+        "compatibility": {"type": "string"},
+        "estimated_effort": {"type": "string", "enum": ["low", "medium", "high", "very_high"]}
+      }
+    },
+    "output_files": {
+      "type": "array",
+      "description": "Files created by research",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {"type": "string"},
+          "category": {"type": "string"},
+          "format": {"type": "string", "enum": ["markdown", "json", "code", "other"]}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "research_duration": {"type": "integer", "description": "Duration in seconds"},
+        "sources_consulted": {"type": "integer"},
+        "model_used": {"type": "string"},
+        "confidence_score": {"type": "number", "minimum": 0, "maximum": 100}
+      }
+    }
+  }
+}

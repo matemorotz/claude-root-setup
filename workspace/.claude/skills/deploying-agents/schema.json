@@ -1,0 +1,26 @@
+{
+  "skill": "deploying-agents",
+  "version": "1.0.0",
+  "input": {
+    "required": {
+      "task": "string — description of agent to deploy (e.g. 'create a calendar specialist agent for CoreTeam')"
+    },
+    "optional": {
+      "agent_name": "string — name for the agent",
+      "project_path": "path — project directory (default: CoreTeam)",
+      "arch_type": "specialist|governor|router — agent architecture type"
+    },
+    "context": {
+      "project": "string",
+      "parent_task": "string",
+      "dependencies": ["skill-name"]
+    }
+  },
+  "output": {
+    "status": "success|error|dependency-needed",
+    "result": "any — deployment summary",
+    "dependency_requests": [{"skill": "string", "task": "string", "reason": "string"}],
+    "files_created": ["path"],
+    "error": "string if status=error"
+  }
+}

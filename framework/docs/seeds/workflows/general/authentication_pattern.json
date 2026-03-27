@@ -1,0 +1,7 @@
+{
+  "id": "authentication_pattern",
+  "goal": "Ensure all authentication code follows the established pattern to avoid inconsistent implementations",
+  "grounding": "app/auth.py",
+  "rule": "Use JWT for authentication; Use decorator for protected routes; Use bcrypt for password hashing",
+  "connected_seed_rules": {}
+}
