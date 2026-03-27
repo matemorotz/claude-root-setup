@@ -1,0 +1,27 @@
+{
+  "skill": "learn-session",
+  "version": "1.0.0",
+  "description": "Run the learning pipeline on a completed session: extract patterns, analyze prompt effectiveness of involved agents and seed rules, and update seeds accordingly.",
+  "input": {
+    "required": {},
+    "optional": {
+      "session_id":   "UUID of the session to analyze. Default: most recent session for the current project.",
+      "project_path": "Absolute path to the project directory. Default: current working directory.",
+      "workflow":     "Workflow name to file rules under. Default: reads ## Workflow: from CLAUDE.md.",
+      "dry_run":      "boolean — show analysis without writing any rules (default: false)",
+      "step":         "all | patterns | effectiveness — which part of the pipeline to run (default: all)"
+    }
+  },
+  "output": {
+    "status":          "success | error | skipped",
+    "session_id":      "UUID of the session analyzed",
+    "new_rules":       "number of new rules added (or staged in pending/)",
+    "updated_rules":   "number of existing rules updated",
+    "pending_review":  "number of rules queued in seeds/workflows/{workflow}/pending/",
+    "rules_used_useful": "number of seed rules rated used_useful",
+    "rules_ignored":   "number of seed rules rated ignored",
+    "contradictions":  "number of contradicting rules/prompt sections found",
+    "report":          "human-readable summary of what was learned",
+    "error":           "error message if status=error"
+  }
+}

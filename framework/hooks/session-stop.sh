@@ -73,5 +73,41 @@ if [ -f "$SCRIPTS_DIR/rule-validator.py" ]; then
     fi
 fi
 
-echo "{\"session_end\": \"$timestamp\", \"project\": \"$project_name\", \"rules_validated\": true, \"has_conflicts\": $has_conflicts}"
+# ── Learning mode (only when enabled in learning.json or invoked via skill) ───
+LEARNING_CONFIG=$(find_file "learning.json" || echo "")
+LEARNING_ENABLED=false
+
+if [ -n "$LEARNING_CONFIG" ] && [ -f "$LEARNING_CONFIG" ]; then
+    workflow=$(python3 -c "
+import json, sys
+try:
+    import subprocess, os
+    claude_md = '$project_path/CLAUDE.md'
+    with open(claude_md) as f:
+        for line in f:
+            if line.startswith('## Workflow:'):
+                print(line.split(':',1)[1].strip())
+                sys.exit(0)
+    print('general')
+except: print('general')
+" 2>/dev/null || echo "general")
+
+    LEARNING_ENABLED=$(python3 -c "
+import json
+c = json.load(open('$LEARNING_CONFIG'))
+wf = c.get('workflows', {}).get('$workflow', {})
+dm = c.get('domains', {}).get('$project_name', {})
+enabled = wf.get('enabled', dm.get('enabled', c.get('enabled', False)))
+print(str(enabled).lower())
+" 2>/dev/null || echo "false")
+fi
+
+learning_result='{"learned":false,"reason":"disabled"}'
+if [ "$LEARNING_ENABLED" = "true" ] && [ -f "$SCRIPTS_DIR/learn-from-session.sh" ]; then
+    learning_result=$(bash "$SCRIPTS_DIR/learn-from-session.sh" \
+        "$project_path" "${workflow:-general}" 2>/dev/null \
+        || echo '{"learned":false,"reason":"pipeline_error"}')
+fi
+
+echo "{\"session_end\": \"$timestamp\", \"project\": \"$project_name\", \"rules_validated\": true, \"has_conflicts\": $has_conflicts, \"learning\": $learning_result}"
 exit 0

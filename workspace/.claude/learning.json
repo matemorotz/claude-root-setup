@@ -1,0 +1,23 @@
+{
+  "_comment": "Learning mode config. Copy to any project directory and set enabled:true to activate automatic post-session learning. When disabled, learning can still be triggered manually via the learn-session skill.",
+  "enabled": false,
+  "review_mode": true,
+  "min_session_turns": 3,
+  "confidence_threshold": 0.5,
+  "prompt_effectiveness": {
+    "enabled": true,
+    "_comment_model": "Uses Haiku by default (cheap). Requires ANTHROPIC_API_KEY in environment.",
+    "model": "claude-haiku-4-5-20251001",
+    "auto_apply_improvements": false
+  },
+  "domains": {
+    "_comment": "Override enabled per domain slug. Inherits top-level enabled if not set.",
+    "GoogleMCP":          {"enabled": false},
+    "finance_domain":     {"enabled": false},
+    "customer_interface": {"enabled": false}
+  },
+  "workflows": {
+    "_comment": "Override enabled per workflow name (from ## Workflow: in CLAUDE.md).",
+    "general": {"enabled": false}
+  }
+}
